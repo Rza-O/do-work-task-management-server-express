@@ -54,6 +54,13 @@ async function run() {
          res.send(result);
       })
 
+      // deleting a task
+      app.delete('/tasks/:id', async (req, res) => {
+         const { id } = req.params;
+         const result = tasksCollection.deleteOne({ _id: new ObjectId(id) });
+         res.send(result);
+      })
+
 
 
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
