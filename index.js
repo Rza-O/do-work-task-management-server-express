@@ -1,7 +1,7 @@
 require('dotenv').config();
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
 const express = require('express');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -24,10 +24,20 @@ const client = new MongoClient(uri, {
 
 async function run() {
    try {
-      // Connect the client to the server	(optional starting in v4.7)
-      await client.connect();
-      // Send a ping to confirm a successful connection
-      await client.db("admin").command({ ping: 1 });
+
+      const tasksCollection = client.db('tasks_management').collection('tasks');
+
+      // adding task to the db
+      app.post('/tasks', async (req, res) => {
+         const { title, description, dueDate, status, order } = req.body
+         const newTask = { title, description, dueDate: new Date(dueDate), status, order };
+         const result = await tasksCollection.insertOne(newTask);
+         res.send(result);
+      })
+
+
+
+
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
    } finally {
       // Ensures that the client will close when you finish/error
@@ -36,6 +46,10 @@ async function run() {
 }
 run().catch(console.dir);
 
+
+app.get('/', async (req, res) => {
+   res.send('Hello, Welcome to Do-Work')
+})
 
 app.listen(port, () => {
    console.log(`Do-Work server is running at ${port}`)
