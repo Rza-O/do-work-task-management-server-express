@@ -1,11 +1,13 @@
 require('dotenv').config();
 const cors = require('cors');
 const express = require('express');
+const morgan = require('morgan');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
+app.use(morgan('dev'))
 app.use(cors());
 app.use(express.json());
 
@@ -35,6 +37,11 @@ async function run() {
          res.send(result);
       })
 
+      // getting all the tasks from the collection
+      app.get('/tasks', async (req, res) => {
+         const tasks = await tasksCollection.find().sort({ order: 1 }).toArray();
+         res.send(tasks);
+      })
 
 
 
