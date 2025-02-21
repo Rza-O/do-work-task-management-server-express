@@ -62,15 +62,19 @@ async function run() {
 
       //Create a new task
       app.post('/tasks', async (req, res) => {
-         const { title, description, category, userEmail, order } = req.body;
+         const { title, description, category, userEmail } = req.body;
          if (!title || !category || !userEmail) return res.status(400).send({ error: "Missing required fields" });
 
-         // Get userId from users collection
          const user = await usersCollection.findOne({ email: userEmail });
          if (!user) return res.status(404).send({ error: "User not found" });
 
+         const highestOrderTask = await tasksCollection.findOne({ category }, { sort: { order: 1 } });
+
+         const order = highestOrderTask ? highestOrderTask.order - 1 : 1;
+
          const newTask = { title, description, category, userId: user._id, order, createdAt: new Date() };
          const result = await tasksCollection.insertOne(newTask);
+
          res.send(result);
       });
 
@@ -88,16 +92,23 @@ async function run() {
          res.send(tasks);
       });
 
-      //Update a task (edit title, description, category, or order)
+      //Update a task 
       app.put('/tasks/:id', async (req, res) => {
          const { id } = req.params;
+         console.log("id->", id, typeof id)
          const { title, description, category, order } = req.body;
+         console.log('the body ->', title, description, category, order)
 
-         const result = await tasksCollection.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: { title, description, category, order } }
-         );
-         res.send(result);
+         try {
+            const result = await tasksCollection.updateOne(
+               { _id: new ObjectId(id) },
+               { $set: { title, description, category, order } }
+            );
+            res.send(result);
+         } catch (error) {
+            console.log(error)
+            res.send(error)
+         }
       });
 
 
@@ -109,18 +120,18 @@ async function run() {
       });
 
    } catch (error) {
-      console.error("❌ Error during initialization:", error);
+      console.error("Error during initialization:", error);
    }
 }
 
 run().catch(console.dir);
 
-// ✅ Health Check Endpoint
+//Health Check Endpoint
 app.get('/', (req, res) => {
-   res.send('🚀 Do-Work Task Management API is running!');
+   res.send('Do-Work Task Management API is running!');
 });
 
-// ✅ Start the Server
+//Start the Server
 app.listen(port, () => {
    console.log(`🚀 Server running on port ${port}`);
 });
