@@ -32,6 +32,8 @@ const client = new MongoClient(uri, {
 async function run() {
    try {
       const tasksCollection = client.db('tasks_management').collection('tasks');
+      const changeStream = tasksCollection.watch();
+
 
       // Adding task to the db
       app.post('/tasks', async (req, res) => {
@@ -67,10 +69,22 @@ async function run() {
       });
 
       // MongoDB Change Stream for real-time updates
-      const changeStream = tasksCollection.watch();
+
       changeStream.on("change", async () => {
          const updatedTasks = await tasksCollection.find().sort({ order: 1 }).toArray();
-         io.emit('tasksUpdated', updatedTasks);  // Emit real-time update event
+         io.emit('tasksUpdated', updatedTasks);
+      });
+
+      
+      io.on("connection", async (socket) => {
+         console.log("User connected");
+
+         // Send initial tasks to new connections
+         socket.emit("tasksUpdated", await tasksCollection.find().toArray());
+
+         socket.on("disconnect", () => {
+            console.log("User disconnected");
+         });
       });
 
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
