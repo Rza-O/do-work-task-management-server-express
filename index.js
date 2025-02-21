@@ -27,24 +27,6 @@ async function run() {
       const tasksCollection = db.collection('tasks');
       const usersCollection = db.collection('users');
 
-      //Real-time MongoDB Change Stream
-      app.get('/tasks/stream', async (req, res) => {
-         res.setHeader('Content-Type', 'text/event-stream');
-         res.setHeader('Cache-Control', 'no-cache');
-         res.setHeader('Connection', 'keep-alive');
-         res.flushHeaders();
-
-         const changeStream = tasksCollection.watch();
-         changeStream.on('change', async () => {
-            const updatedTasks = await tasksCollection.find().sort({ order: 1 }).toArray();
-            res.write(`data: ${JSON.stringify(updatedTasks)}\n\n`);
-         });
-
-         req.on('close', () => {
-            changeStream.close();
-            res.end();
-         });
-      });
 
       //Save user details on first login
       app.post('/users', async (req, res) => {
