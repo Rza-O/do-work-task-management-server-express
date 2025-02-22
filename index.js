@@ -20,7 +20,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
    try {
-      await client.connect();
+      // await client.connect();
       console.log(" Connected to MongoDB");
 
       const db = client.db('tasks_management');
@@ -106,7 +106,7 @@ async function run() {
    }
 }
 
-run().catch(console.dir);
+run()
 
 //Health Check Endpoint
 app.get('/', (req, res) => {
